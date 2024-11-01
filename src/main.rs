@@ -1,13 +1,10 @@
 use clap::{Arg, ArgAction, Command};
 use colored::Colorize;
-use std::{env, path::Path};
+use std::{env, fs, path::Path};
 
 // My Library modules
 mod lib;
-use lib::{
-    filter::contains_matching_files_extension,
-    generate::{generate_json_tree, generate_tree},
-};
+use lib::generate::{generate_json_tree, generate_tree};
 
 /// Simple CLI tool to generate folder structure in ASCII for markdown files.
 fn main() {
@@ -102,7 +99,12 @@ fn main() {
         let json_tree_output =
             serde_json::to_string_pretty(&json_tree).expect("Failed to serialize the JSON");
 
-        println!("{}", json_tree_output)
+        if let Some(output_file) = output_file {
+            fs::write(output_file, json_tree_output).expect("Failed to write to file");
+            println!("JSON output has been written to {}", output_file);
+        } else {
+            println!("{}", json_tree_output)
+        }
     } else {
         // Start the recursive tree generation for subdirectories
         generate_tree(
