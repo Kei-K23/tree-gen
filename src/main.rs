@@ -4,7 +4,10 @@ use std::{env, path::Path};
 
 // My Library modules
 mod lib;
-use lib::{filter::contains_matching_files_extension, generate::generate_tree};
+use lib::{
+    filter::contains_matching_files_extension,
+    generate::{generate_json_tree, generate_tree},
+};
 
 /// Simple CLI tool to generate folder structure in ASCII for markdown files.
 fn main() {
@@ -59,6 +62,15 @@ fn main() {
                 .num_args(0)
                 .action(ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("json")
+                .help("Generate the json output of directory structure")
+                .short('j')
+                .long("json")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue),
+        )
         .get_matches();
 
     let path_str = matches.get_one::<String>("path").unwrap();
@@ -68,23 +80,30 @@ fn main() {
     let depth_int = depth_str.parse::<usize>().unwrap();
     let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
     let show_size = matches.get_one::<bool>("show_sizes").unwrap();
+    let json = matches.get_one::<bool>("json").unwrap();
 
     let path = Path::new(path_str);
     let current_dir_path = env::current_dir().unwrap();
     let max_depth = Some(depth_int);
 
-    // Print root directory (without prefix) if it has matching files
-    if path.is_dir()
-        && contains_matching_files_extension(path, filter_extension, ignore_hidden.to_owned())
-    {
-        println!(
-            "{}",
-            current_dir_path
-                .file_name()
-                .unwrap_or_else(|| path.file_name().unwrap_or_else(|| path.as_os_str()))
-                .to_string_lossy()
-                .green()
-        );
+    // Get the name of the root directory for the display
+    let root_dir_name = current_dir_path
+        .file_name()
+        .or_else(|| path.file_name())
+        .unwrap_or_else(|| path.as_os_str())
+        .to_string_lossy()
+        .green()
+        .to_string();
+
+    println!("{}", root_dir_name);
+
+    if *json {
+        let json_tree = generate_json_tree(path, ignore_hidden.to_owned(), &root_dir_name);
+        let json_tree_output =
+            serde_json::to_string_pretty(&json_tree).expect("Failed to serialize the JSON");
+
+        println!("{}", json_tree_output)
+    } else {
         // Start the recursive tree generation for subdirectories
         generate_tree(
             path,

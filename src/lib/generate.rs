@@ -4,10 +4,19 @@ use std::{
 };
 
 use colored::Colorize;
+use serde::Serialize;
 
 use crate::lib::filter::contains_matching_files_extension;
 
 use super::output_file::write_output;
+
+#[derive(Serialize)]
+pub struct TreeNode {
+    name: String,
+    size: String,
+    node_type: String,
+    children: Vec<TreeNode>,
+}
 
 /// Generate an ASCII representation of the directory structure.
 pub fn generate_tree(
@@ -102,4 +111,48 @@ pub fn generate_tree(
             }
         }
     }
+}
+
+pub fn generate_json_tree(path: &Path, ignore_hidden: bool, root_dir_name: &str) -> TreeNode {
+    let name = match path.file_name() {
+        Some(path_name) => path_name.to_string_lossy().into_owned(),
+        None => root_dir_name.to_string(),
+    };
+
+    // If show size flags is true, then get the file size from metadata
+    let size_str = match metadata(&path) {
+        // Convert to KB by divided by 1024
+        Ok(metadata) => format!("{:.2} KB", metadata.len() as f64 / 1024.0),
+        Err(_) => String::from("size unknown"),
+    };
+
+    let mut node = TreeNode {
+        name,
+        size: size_str,
+        node_type: if path.is_dir() {
+            "Directory".to_string()
+        } else {
+            "File".to_string()
+        },
+        children: vec![],
+    };
+
+    if path.is_dir() {
+        if let Ok(entires) = fs::read_dir(path) {
+            for entry in entires.filter_map(Result::ok) {
+                let path = entry.path();
+                let file_name = path.file_name().unwrap().to_string_lossy();
+
+                // Check file for ignore hidden
+                if ignore_hidden && file_name.starts_with(".") {
+                    continue;
+                }
+
+                node.children
+                    .push(generate_json_tree(&path, ignore_hidden, root_dir_name));
+            }
+        }
+    }
+
+    node
 }
