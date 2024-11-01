@@ -1,4 +1,5 @@
 use std::{
+    env,
     fs::{self, metadata},
     path::Path,
 };
@@ -61,6 +62,7 @@ fn main() {
     let show_size = matches.get_one::<bool>("show_sizes").unwrap();
 
     let path = Path::new(path_str);
+    let current_dir_path = env::current_dir().unwrap();
     let max_depth = Some(depth_int);
 
     // Print root directory (without prefix) if it has matching files
@@ -69,8 +71,9 @@ fn main() {
     {
         println!(
             "{}",
-            path.file_name()
-                .unwrap_or_else(|| path.as_os_str())
+            current_dir_path
+                .file_name()
+                .unwrap_or_else(|| path.file_name().unwrap_or_else(|| path.as_os_str()))
                 .to_string_lossy()
         );
         // Start the recursive tree generation for subdirectories
