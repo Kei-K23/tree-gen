@@ -1,4 +1,5 @@
 use clap::{Arg, ArgAction, Command};
+use colored::Colorize;
 use std::{env, path::Path};
 
 // My Library modules
@@ -82,6 +83,7 @@ fn main() {
                 .file_name()
                 .unwrap_or_else(|| path.file_name().unwrap_or_else(|| path.as_os_str()))
                 .to_string_lossy()
+                .green()
         );
         // Start the recursive tree generation for subdirectories
         generate_tree(

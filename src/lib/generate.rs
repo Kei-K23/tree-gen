@@ -3,6 +3,8 @@ use std::{
     path::Path,
 };
 
+use colored::Colorize;
+
 use crate::lib::filter::contains_matching_files_extension;
 
 use super::output_file::write_output;
@@ -67,7 +69,15 @@ pub fn generate_tree(
 
             let is_last = i == entries.len() - 1;
             let new_prefix = if is_last { "└── " } else { "├── " };
-            let content = format!("{}{}{}{}", prefix, new_prefix, file_name, size_str);
+
+            // Use color for better visualization
+            let file_name_colored = if path.is_dir() {
+                file_name.green()
+            } else {
+                file_name.normal()
+            };
+
+            let content = format!("{}{}{}{}", prefix, new_prefix, file_name_colored, size_str);
 
             // If output file exist, then write to file instead of printing out to terminal
             if let Some(output) = output_file {
