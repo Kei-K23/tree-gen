@@ -15,6 +15,7 @@ fn main() {
         .arg(
             Arg::new("path")
                 .help("Path of the directory to display")
+                .value_name("PATH")
                 .required(true),
         )
         .arg(
@@ -22,7 +23,15 @@ fn main() {
                 .help("Maximum depth of the tree")
                 .short('d')
                 .long("depth")
+                .value_name("DEPTH")
                 .default_value("10"),
+        )
+        .arg(
+            Arg::new("file_extension")
+                .help("Filter output to show only files with a specific file extension")
+                .short('e')
+                .value_name("EXT")
+                .long("extension"),
         )
         .arg(
             Arg::new("ignore_hidden")
@@ -45,6 +54,7 @@ fn main() {
         .get_matches();
 
     let path_str = matches.get_one::<String>("path").unwrap();
+    let filter_extension = matches.get_one::<String>("file_extension");
     let depth_str = matches.get_one::<String>("depth").unwrap();
     let depth_int = depth_str.parse::<usize>().unwrap();
     let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
@@ -53,20 +63,72 @@ fn main() {
     let path = Path::new(path_str);
     let max_depth = Some(depth_int);
 
-    generate_tree(
-        path,
-        "",
-        1,
-        max_depth,
-        ignore_hidden.to_owned(),
-        show_size.to_owned(),
-    );
+    // Print root directory (without prefix) if it has matching files
+    if path.is_dir()
+        && contains_matching_files_extension(path, filter_extension, ignore_hidden.to_owned())
+    {
+        println!(
+            "{}",
+            path.file_name()
+                .unwrap_or_else(|| path.as_os_str())
+                .to_string_lossy()
+        );
+        // Start the recursive tree generation for subdirectories
+        generate_tree(
+            path,
+            "",
+            filter_extension,
+            1,
+            max_depth,
+            ignore_hidden.to_owned(),
+            show_size.to_owned(),
+        );
+    }
+}
+
+/// Check if a directory contains files with the specified extension (for filtering)
+fn contains_matching_files_extension(
+    path: &Path,
+    file_extension: Option<&String>,
+    ignore_hidden: bool,
+) -> bool {
+    if let Ok(entries) = fs::read_dir(path) {
+        for entry in entries.filter_map(Result::ok) {
+            let path = entry.path();
+            let file_name = path.file_name().unwrap().to_string_lossy();
+
+            // Ignore hidden files/folders if `ignore_hidden` is enabled
+            if ignore_hidden && file_name.starts_with('.') {
+                continue;
+            }
+
+            // If it’s a file, check for extension match
+            if path.is_file() {
+                if let Some(ext) = file_extension {
+                    if path.extension().and_then(|e| e.to_str()) == Some(ext) {
+                        return true; // Found a matching file
+                    }
+                } else {
+                    return true; // No extension filter, any file counts
+                }
+            }
+
+            // If it’s a directory, recursively check inside
+            if path.is_dir()
+                && contains_matching_files_extension(&path, file_extension, ignore_hidden)
+            {
+                return true; // Matching files found in a subdirectory
+            }
+        }
+    }
+    false // No matching files found
 }
 
 /// Generate an ASCII representation of the directory structure.
 fn generate_tree(
     path: &Path,
     prefix: &str,
+    file_extension: Option<&String>,
     depth: usize,
     max_depth: Option<usize>,
     ignore_hidden: bool,
@@ -93,6 +155,21 @@ fn generate_tree(
                 continue;
             }
 
+            // Check file extension when file extension have value
+            // This is check for directory for file extension
+            if path.is_dir() && file_extension.is_some() {
+                if !contains_matching_files_extension(&path, file_extension, ignore_hidden) {
+                    continue;
+                }
+            }
+
+            // This is check directly for a file
+            if let Some(ext) = file_extension {
+                if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                    continue;
+                }
+            }
+
             // If show size flags is true, then get the file size from metadata
             let size_str = if show_size {
                 match metadata(&path) {
@@ -114,6 +191,7 @@ fn generate_tree(
                 generate_tree(
                     &path,
                     &format!("{}{}", prefix, additional_prefix),
+                    file_extension,
                     depth + 1,
                     max_depth,
                     ignore_hidden,
