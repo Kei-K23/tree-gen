@@ -5,11 +5,14 @@ use std::{
 
 use crate::lib::filter::contains_matching_files_extension;
 
+use super::output_file::write_output;
+
 /// Generate an ASCII representation of the directory structure.
 pub fn generate_tree(
     path: &Path,
     prefix: &str,
     file_extension: Option<&String>,
+    output_file: Option<&String>,
     depth: usize,
     max_depth: Option<usize>,
     ignore_hidden: bool,
@@ -64,7 +67,14 @@ pub fn generate_tree(
 
             let is_last = i == entries.len() - 1;
             let new_prefix = if is_last { "└── " } else { "├── " };
-            println!("{}{}{}{}", prefix, new_prefix, file_name, size_str);
+            let content = format!("{}{}{}{}", prefix, new_prefix, file_name, size_str);
+
+            // If output file exist, then write to file instead of printing out to terminal
+            if let Some(output) = output_file {
+                write_output(&output, &content).expect("Failed to write to file");
+            } else {
+                println!("{}", content);
+            }
 
             // If path is dir, then recurse into directories
             if path.is_dir() {
@@ -73,6 +83,7 @@ pub fn generate_tree(
                     &path,
                     &format!("{}{}", prefix, additional_prefix),
                     file_extension,
+                    output_file,
                     depth + 1,
                     max_depth,
                     ignore_hidden,

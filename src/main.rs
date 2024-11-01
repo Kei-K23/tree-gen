@@ -10,7 +10,7 @@ fn main() {
     // CLI interface
     let matches = Command::new("tree_gen")
         .version("0.1.0")
-        .about("tree-gen is a CLI tool to generate folder structure in ASCII")
+        .about("tree-gen is a CLI tool to generate folder structure in ASCII and visualize folder structure")
         .author("Kei-K23")
         .arg(
             Arg::new("path")
@@ -34,6 +34,13 @@ fn main() {
                 .long("extension"),
         )
         .arg(
+            Arg::new("output_file")
+                .help("Write the output to a file instead of printing to terminal")
+                .short('o')
+                .long("output")
+                .value_name("FILE"),
+        )
+        .arg(
             Arg::new("ignore_hidden")
                 .help("Ignore hidden files and folders")
                 .short('i')
@@ -55,6 +62,7 @@ fn main() {
 
     let path_str = matches.get_one::<String>("path").unwrap();
     let filter_extension = matches.get_one::<String>("file_extension");
+    let output_file = matches.get_one::<String>("output_file");
     let depth_str = matches.get_one::<String>("depth").unwrap();
     let depth_int = depth_str.parse::<usize>().unwrap();
     let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
@@ -80,6 +88,7 @@ fn main() {
             path,
             "",
             filter_extension,
+            output_file,
             1,
             max_depth,
             ignore_hidden.to_owned(),
