@@ -7,7 +7,7 @@ fn main() {
     // CLI interface
     let matches = Command::new("tree_gen")
         .version("0.1.0")
-        .about("tree-gen is a CLI tool to generate folder structure in ASCII for markdown files.")
+        .about("tree-gen is a CLI tool to generate folder structure in ASCII")
         .author("Kei-K23")
         .arg(
             Arg::new("path")
@@ -39,12 +39,6 @@ fn main() {
 
     let path = Path::new(path_str);
     let max_depth = Some(depth_int);
-    let dir_path = Path::new(path);
-
-    match dir_path.file_name() {
-        Some(name) => println!("{}", name.to_string_lossy()),
-        None => println!("No root directory name detected"),
-    }
 
     generate_tree(path, "", 1, max_depth, ignore.to_owned());
 }
