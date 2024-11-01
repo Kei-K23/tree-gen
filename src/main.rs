@@ -43,6 +43,7 @@ fn main() {
     generate_tree(path, "", 1, max_depth, ignore.to_owned());
 }
 
+/// Generate an ASCII representation of the directory structure.
 fn generate_tree(
     path: &Path,
     prefix: &str,
