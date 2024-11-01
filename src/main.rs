@@ -1,4 +1,7 @@
-use std::{fs, path::Path};
+use std::{
+    fs::{self, metadata},
+    path::Path,
+};
 
 use clap::{Arg, ArgAction, Command};
 
@@ -30,17 +33,34 @@ fn main() {
                 .num_args(0)
                 .action(ArgAction::SetTrue),
         )
+        .arg(
+            Arg::new("show_sizes")
+                .help("Show file size next to file name")
+                .short('s')
+                .long("show-sizes")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue),
+        )
         .get_matches();
 
     let path_str = matches.get_one::<String>("path").unwrap();
     let depth_str = matches.get_one::<String>("depth").unwrap();
     let depth_int = depth_str.parse::<usize>().unwrap();
-    let ignore = matches.get_one::<bool>("ignore_hidden").unwrap();
+    let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
+    let show_size = matches.get_one::<bool>("show_sizes").unwrap();
 
     let path = Path::new(path_str);
     let max_depth = Some(depth_int);
 
-    generate_tree(path, "", 1, max_depth, ignore.to_owned());
+    generate_tree(
+        path,
+        "",
+        1,
+        max_depth,
+        ignore_hidden.to_owned(),
+        show_size.to_owned(),
+    );
 }
 
 /// Generate an ASCII representation of the directory structure.
@@ -50,6 +70,7 @@ fn generate_tree(
     depth: usize,
     max_depth: Option<usize>,
     ignore_hidden: bool,
+    show_size: bool,
 ) {
     // Stop when reach to max depth
     if let Some(max) = max_depth {
@@ -72,9 +93,20 @@ fn generate_tree(
                 continue;
             }
 
+            // If show size flags is true, then get the file size from metadata
+            let size_str = if show_size {
+                match metadata(&path) {
+                    // Convert to KB by divided by 1024
+                    Ok(metadata) => format!(" ({:.2} KB)", metadata.len() as f64 / 1024.0),
+                    Err(_) => String::from(" (size unknown)"),
+                }
+            } else {
+                String::new()
+            };
+
             let is_last = i == entries.len() - 1;
             let new_prefix = if is_last { "└── " } else { "├── " };
-            println!("{}{}{}", prefix, new_prefix, file_name);
+            println!("{}{}{}{}", prefix, new_prefix, file_name, size_str);
 
             // If path is dir, then recurse into directories
             if path.is_dir() {
@@ -85,6 +117,7 @@ fn generate_tree(
                     depth + 1,
                     max_depth,
                     ignore_hidden,
+                    show_size,
                 );
             }
         }
