@@ -129,7 +129,12 @@ pub fn generate_tree(
     }
 }
 
-pub fn generate_json_tree(path: &Path, ignore_hidden: bool, root_dir_name: &str) -> TreeNode {
+pub fn generate_json_tree(
+    path: &Path,
+    ignore_hidden: bool,
+    root_dir_name: &str,
+    file_extension: Option<&String>,
+) -> TreeNode {
     let name = match path.file_name() {
         Some(path_name) => path_name.to_string_lossy().into_owned(),
         None => root_dir_name.to_string(),
@@ -179,8 +184,27 @@ pub fn generate_json_tree(path: &Path, ignore_hidden: bool, root_dir_name: &str)
                     continue;
                 }
 
-                node.children
-                    .push(generate_json_tree(&path, ignore_hidden, root_dir_name));
+                // Check file extension when file extension have value
+                // This is check for directory for file extension
+                if path.is_dir() && file_extension.is_some() {
+                    if !contains_matching_files_extension(&path, file_extension, ignore_hidden) {
+                        continue;
+                    }
+                }
+
+                // This is check directly for a file
+                if let Some(ext) = file_extension {
+                    if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                        continue;
+                    }
+                }
+
+                node.children.push(generate_json_tree(
+                    &path,
+                    ignore_hidden,
+                    root_dir_name,
+                    file_extension,
+                ));
             }
         }
     }

@@ -1,0 +1,67 @@
+{
+  "name": "\u001b[32mtree-gen\u001b[0m",
+  "size": "0.31 KB",
+  "node_type": "Directory",
+  "permission": "40755",
+  "last_modification_date": "SystemTime { tv_sec: 1730516261, tv_nsec: 975249965 }",
+  "children": [
+    {
+      "name": "src",
+      "size": "0.12 KB",
+      "node_type": "Directory",
+      "permission": "40755",
+      "last_modification_date": "SystemTime { tv_sec: 1730455597, tv_nsec: 509672857 }",
+      "children": [
+        {
+          "name": "lib",
+          "size": "0.19 KB",
+          "node_type": "Directory",
+          "permission": "40755",
+          "last_modification_date": "SystemTime { tv_sec: 1730457448, tv_nsec: 278881792 }",
+          "children": [
+            {
+              "name": "generate.rs",
+              "size": "6.80 KB",
+              "node_type": "File",
+              "permission": "100644",
+              "last_modification_date": "SystemTime { tv_sec: 1730516156, tv_nsec: 273400451 }",
+              "children": []
+            },
+            {
+              "name": "output_file.rs",
+              "size": "0.33 KB",
+              "node_type": "File",
+              "permission": "100644",
+              "last_modification_date": "SystemTime { tv_sec: 1730458226, tv_nsec: 516636047 }",
+              "children": []
+            },
+            {
+              "name": "mod.rs",
+              "size": "0.05 KB",
+              "node_type": "File",
+              "permission": "100644",
+              "last_modification_date": "SystemTime { tv_sec: 1730457467, tv_nsec: 747443920 }",
+              "children": []
+            },
+            {
+              "name": "filter.rs",
+              "size": "1.37 KB",
+              "node_type": "File",
+              "permission": "100644",
+              "last_modification_date": "SystemTime { tv_sec: 1730455710, tv_nsec: 359012003 }",
+              "children": []
+            }
+          ]
+        },
+        {
+          "name": "main.rs",
+          "size": "4.50 KB",
+          "node_type": "File",
+          "permission": "100644",
+          "last_modification_date": "SystemTime { tv_sec: 1730516195, tv_nsec: 523070359 }",
+          "children": []
+        }
+      ]
+    }
+  ]
+}

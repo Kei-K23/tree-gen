@@ -79,7 +79,7 @@ fn main() {
         .get_matches();
 
     let path_str = matches.get_one::<String>("path").unwrap();
-    let filter_extension = matches.get_one::<String>("file_extension");
+    let file_extension = matches.get_one::<String>("file_extension");
     let output_file = matches.get_one::<String>("output_file");
     let branch_style = matches.get_one::<String>("branch_style");
     let depth_str = matches.get_one::<String>("depth").unwrap();
@@ -104,7 +104,12 @@ fn main() {
     println!("{}", root_dir_name);
 
     if *json {
-        let json_tree = generate_json_tree(path, ignore_hidden.to_owned(), &root_dir_name);
+        let json_tree = generate_json_tree(
+            path,
+            ignore_hidden.to_owned(),
+            &root_dir_name,
+            file_extension,
+        );
         let json_tree_output =
             serde_json::to_string_pretty(&json_tree).expect("Failed to serialize the JSON");
 
@@ -119,7 +124,7 @@ fn main() {
         generate_tree(
             path,
             "",
-            filter_extension,
+            file_extension,
             output_file,
             1,
             max_depth,
