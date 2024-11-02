@@ -6,6 +6,7 @@ use std::{
 };
 
 use colored::Colorize;
+use regex::Regex;
 use serde::Serialize;
 
 use crate::lib::filter::contains_matching_files_extension;
@@ -37,16 +38,16 @@ pub fn generate_tree(
     date_filter: Option<&String>,
     size_min: Option<u64>,
     size_max: Option<u64>,
+    include: Option<&String>,
+    exclude: Option<&String>,
 ) {
     // Determine branch style based on style
-    let (branch, last_branch, continuation) = match branch_style {
-        Some(branch_style) => {
-            match branch_style.as_str() {
-                "ascii" => ("|-- ", "`-- ", "|   "), // ASCII style
-                _ => ("├── ", "└── ", "│   "),       // Unicode style (default)
-            }
-        }
-        None => ("├── ", "└── ", "│   "), // Unicode style (default)
+    let (branch, last_branch, continuation, close_line) = match branch_style {
+        Some(branch_style) => match branch_style.as_str() {
+            "ascii" => ("|-- ", "`-- ", "|   ", "|"), // ASCII style
+            _ => ("├── ", "└── ", "│   ", "│"),       // Unicode style (default)
+        },
+        None => ("├── ", "└── ", "│   ", "│"), // Unicode style (default)
     };
 
     // Stop when reach to max depth
@@ -58,7 +59,6 @@ pub fn generate_tree(
 
     if let Ok(entries) = fs::read_dir(path) {
         // Check inside directory
-
         let entries: Vec<_> = entries.filter_map(Result::ok).collect();
 
         for (i, entry) in entries.iter().enumerate() {
@@ -99,6 +99,24 @@ pub fn generate_tree(
                         if size > max {
                             continue;
                         }
+                    }
+                }
+            }
+
+            if path.is_file() {
+                // If include flag parse, then filter by file name with regex pattern
+                if let Some(include_pattern) = include {
+                    let re = Regex::new(&include_pattern).unwrap();
+                    if !re.is_match(&file_name) {
+                        continue;
+                    }
+                }
+
+                // If exclude flag parse, then filter by file name with regex pattern
+                if let Some(exclude_pattern) = exclude {
+                    let re = Regex::new(&exclude_pattern).unwrap();
+                    if re.is_match(&file_name) {
+                        continue;
                     }
                 }
             }
@@ -194,6 +212,8 @@ pub fn generate_tree(
                     date_filter,
                     size_min,
                     size_max,
+                    include,
+                    exclude,
                 );
             }
         }

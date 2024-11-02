@@ -69,9 +69,21 @@ fn main() {
         )
         .arg(
             Arg::new("size_max")
-                 .help("Maximum file size in bytes for filtering")
-                .long("size-max")
-                .value_name("SIZE_MAX")
+            .help("Maximum file size in bytes for filtering")
+            .long("size-max")
+            .value_name("SIZE_MAX")
+        )
+        .arg(
+            Arg::new("include")
+                .help("Include files matching this pattern (wildcard or regex)")
+                .long("include")
+                .value_name("INCLUDE"),
+        )
+         .arg(
+            Arg::new("exclude")
+                .help("Exclude files matching this pattern (wildcard or regex)")
+                .long("exclude")
+                .value_name("EXCLUDE"),
         )
         .arg(
             Arg::new("ignore_hidden")
@@ -120,6 +132,8 @@ fn main() {
 
     // Get the filter flags
     let date_filter = matches.get_one::<String>("date_filter");
+    let include = matches.get_one::<String>("include");
+    let exclude = matches.get_one::<String>("exclude");
     let size_min = matches
         .get_one::<String>("size_min")
         .and_then(|s| s.parse::<u64>().ok());
@@ -170,6 +184,8 @@ fn main() {
             date_filter,
             size_min,
             size_max,
+            include,
+            exclude,
         );
     }
 }
