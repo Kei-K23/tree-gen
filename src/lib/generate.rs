@@ -35,6 +35,8 @@ pub fn generate_tree(
     branch_style: Option<&String>,
     preview_lines: Option<&String>,
     date_filter: Option<&String>,
+    size_min: Option<u64>,
+    size_max: Option<u64>,
 ) {
     // Determine branch style based on style
     let (branch, last_branch, continuation) = match branch_style {
@@ -80,6 +82,24 @@ pub fn generate_tree(
             if let Some(ext) = file_extension {
                 if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext) {
                     continue;
+                }
+            }
+
+            // If size_min and size_max flags parse, then check and filter files by file size
+            // Corrected size filter logic
+            if let Some(size) = metadata(&path).map(|meta| meta.len()).ok() {
+                // TODO! Handle for ending character
+                if path.is_file() {
+                    if let Some(min) = size_min {
+                        if size < min {
+                            continue;
+                        }
+                    }
+                    if let Some(max) = size_max {
+                        if size > max {
+                            continue;
+                        }
+                    }
                 }
             }
 
@@ -172,6 +192,8 @@ pub fn generate_tree(
                     branch_style,
                     preview_lines,
                     date_filter,
+                    size_min,
+                    size_max,
                 );
             }
         }

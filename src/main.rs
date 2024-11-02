@@ -62,6 +62,18 @@ fn main() {
                 .value_name("DATE_FILTER")
         )
         .arg(
+            Arg::new("size_min")
+                 .help("Minimum file size in bytes for filtering")
+                .long("size-min")
+                .value_name("SIZE_MIN")
+        )
+        .arg(
+            Arg::new("size_max")
+                 .help("Maximum file size in bytes for filtering")
+                .long("size-max")
+                .value_name("SIZE_MAX")
+        )
+        .arg(
             Arg::new("ignore_hidden")
                 .help("Ignore hidden files and folders")
                 .short('i')
@@ -108,6 +120,12 @@ fn main() {
 
     // Get the filter flags
     let date_filter = matches.get_one::<String>("date_filter");
+    let size_min = matches
+        .get_one::<String>("size_min")
+        .and_then(|s| s.parse::<u64>().ok());
+    let size_max = matches
+        .get_one::<String>("size_max")
+        .and_then(|s| s.parse::<u64>().ok());
 
     // Get the name of the root directory for the display
     let root_dir_name = current_dir_path
@@ -150,6 +168,8 @@ fn main() {
             branch_style,
             preview_lines,
             date_filter,
+            size_min,
+            size_max,
         );
     }
 }
