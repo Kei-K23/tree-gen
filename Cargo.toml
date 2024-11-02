@@ -1,7 +1,15 @@
 [package]
-name = "tree-gen"
+name = "tree_gen"
 version = "0.1.0"
 edition = "2021"
+authors = ["Kei-K23 <arkar.dev.kei@gmail.com>"]
+license = "MIT"
+description = "tree_gen is a CLI tool to generate folder structure in ASCII, JSON and visualize folder structure with nice and easy way without leaving your terminal."
+readme = "README.md"
+homepage = "https://github.com/Kei-K23/tree-gen"
+repository = "https://github.com/Kei-K23/tree-gen"
+keywords = ["file-directory", "folder-structure", "ls", "ascii", "tool", "cli"]
+categories = ["command-line-utilities"]
 
 [dependencies]
 clap = "4.5.20"

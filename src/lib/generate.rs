@@ -28,7 +28,19 @@ pub fn generate_tree(
     max_depth: Option<usize>,
     ignore_hidden: bool,
     show_size: bool,
+    branch_style: Option<&String>,
 ) {
+    // Determine branch style based on style
+    let (branch, last_branch, continuation) = match branch_style {
+        Some(branch_style) => {
+            match branch_style.as_str() {
+                "ascii" => ("|-- ", "`-- ", "|   "), // ASCII style
+                _ => ("├── ", "└── ", "│   "),       // Unicode style (default)
+            }
+        }
+        None => ("├── ", "└── ", "│   "), // Unicode style (default)
+    };
+
     // Stop when reach to max depth
     if let Some(max) = max_depth {
         if depth > max {
@@ -77,7 +89,7 @@ pub fn generate_tree(
             };
 
             let is_last = i == entries.len() - 1;
-            let new_prefix = if is_last { "└── " } else { "├── " };
+            let new_prefix = if is_last { last_branch } else { branch };
 
             // Use color for better visualization
             let file_name_colored = if path.is_dir() {
@@ -97,7 +109,7 @@ pub fn generate_tree(
 
             // If path is dir, then recurse into directories
             if path.is_dir() {
-                let additional_prefix = if is_last { "    " } else { "│   " };
+                let additional_prefix = if is_last { "    " } else { continuation };
                 generate_tree(
                     &path,
                     &format!("{}{}", prefix, additional_prefix),
@@ -107,6 +119,7 @@ pub fn generate_tree(
                     max_depth,
                     ignore_hidden,
                     show_size,
+                    branch_style,
                 );
             }
         }

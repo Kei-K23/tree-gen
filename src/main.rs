@@ -11,7 +11,7 @@ fn main() {
     // CLI interface
     let matches = Command::new("tree_gen")
         .version("0.1.0")
-        .about("tree-gen is a CLI tool to generate folder structure in ASCII and visualize folder structure")
+        .about("tree_gen is a CLI tool to generate folder structure in ASCII, JSON and visualize folder structure with nice and easy way without leaving your terminal")
         .author("Kei-K23")
         .arg(
             Arg::new("path")
@@ -40,6 +40,14 @@ fn main() {
                 .short('o')
                 .long("output")
                 .value_name("FILE"),
+        )
+        .arg(
+            Arg::new("branch_style")
+                .help("Set branch style for tree structure")
+                .long("branch-style")
+                .value_name("STYLE")
+                .default_value("unicode")
+                .value_parser(["ascii", "unicode"]),
         )
         .arg(
             Arg::new("ignore_hidden")
@@ -73,6 +81,7 @@ fn main() {
     let path_str = matches.get_one::<String>("path").unwrap();
     let filter_extension = matches.get_one::<String>("file_extension");
     let output_file = matches.get_one::<String>("output_file");
+    let branch_style = matches.get_one::<String>("branch_style");
     let depth_str = matches.get_one::<String>("depth").unwrap();
     let depth_int = depth_str.parse::<usize>().unwrap();
     let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
@@ -116,6 +125,7 @@ fn main() {
             max_depth,
             ignore_hidden.to_owned(),
             show_size.to_owned(),
+            branch_style,
         );
     }
 }

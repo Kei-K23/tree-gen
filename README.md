@@ -1,3 +1,3 @@
-# tree-gen
+# tree_gen
 
-**tree-gen** is a CLI tool to `generate folder structure in ASCII` and `visualize folder structure`
+**tree_gen** is a CLI tool to generate folder structure in `ASCII`, `JSON` and `visualize` folder structure with `nice and easy` way without leaving your `terminal`
