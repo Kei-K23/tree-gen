@@ -52,7 +52,7 @@ pub fn datetime_to_readable(system_time: SystemTime) -> String {
 }
 
 /// Parses a date in "YYYY-MM-DD" format to a timestamp.
-fn parse_date(date: &str) -> u64 {
+pub fn parse_date(date: &str) -> u64 {
     // Split date components from "YYYY-MM-DD" format
     let parts: Vec<&str> = date.split('-').collect();
     if parts.len() != 3 {

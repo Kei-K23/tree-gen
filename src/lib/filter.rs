@@ -1,4 +1,10 @@
-use std::{fs, path::Path};
+use std::{
+    fs::{self, metadata},
+    path::Path,
+    time::UNIX_EPOCH,
+};
+
+use super::date::parse_date;
 
 /// Check if a directory contains files with the specified extension (for filtering)
 pub fn contains_matching_files_extension(
@@ -36,4 +42,30 @@ pub fn contains_matching_files_extension(
         }
     }
     false // No matching files found
+}
+
+pub fn apply_date_filter(path: &Path, filter: &str) -> bool {
+    if let Ok(metadata) = metadata(path) {
+        if let Ok(modified) = metadata.modified() {
+            let modified_date = modified
+                .duration_since(UNIX_EPOCH)
+                .expect("Time went backwards")
+                .as_secs();
+
+            let filter_parts: Vec<&str> = filter.split_whitespace().collect();
+
+            match filter_parts.as_slice() {
+                ["before", filter_date] => modified_date < parse_date(filter_date),
+                ["after", filter_date] => modified_date > parse_date(filter_date),
+                ["between", date1, date2] => {
+                    modified_date > parse_date(date1) && modified_date < parse_date(date2)
+                }
+                _ => true,
+            }
+        } else {
+            true
+        }
+    } else {
+        true
+    }
 }
