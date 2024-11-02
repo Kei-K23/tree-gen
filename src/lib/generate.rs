@@ -10,7 +10,7 @@ use serde::Serialize;
 
 use crate::lib::filter::contains_matching_files_extension;
 
-use super::{date::get_human_readable_date, output_file::write_output};
+use super::{date::get_human_readable_date, filter::apply_date_filter, output_file::write_output};
 
 #[derive(Serialize)]
 pub struct TreeNode {
@@ -34,6 +34,7 @@ pub fn generate_tree(
     show_size: bool,
     branch_style: Option<&String>,
     preview_lines: Option<&String>,
+    date_filter: Option<&String>,
 ) {
     // Determine branch style based on style
     let (branch, last_branch, continuation) = match branch_style {
@@ -78,6 +79,13 @@ pub fn generate_tree(
             // This is check directly for a file
             if let Some(ext) = file_extension {
                 if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                    continue;
+                }
+            }
+
+            // If date filter flag parse, the check and filter by date
+            if let Some(date_filter) = date_filter {
+                if !apply_date_filter(&path, date_filter) {
                     continue;
                 }
             }
@@ -163,6 +171,7 @@ pub fn generate_tree(
                     show_size,
                     branch_style,
                     preview_lines,
+                    date_filter,
                 );
             }
         }

@@ -56,6 +56,12 @@ fn main() {
                 .value_name("LINES")
         )
         .arg(
+            Arg::new("date_filter")
+                 .help("Filter files by date. Format: <before|after|between> <date1>[,<date2>]")
+                .long("date-filter")
+                .value_name("DATE_FILTER")
+        )
+        .arg(
             Arg::new("ignore_hidden")
                 .help("Ignore hidden files and folders")
                 .short('i')
@@ -100,6 +106,9 @@ fn main() {
     let current_dir_path = env::current_dir().unwrap();
     let max_depth = Some(depth_int);
 
+    // Get the filter flags
+    let date_filter = matches.get_one::<String>("date_filter");
+
     // Get the name of the root directory for the display
     let root_dir_name = current_dir_path
         .file_name()
@@ -140,6 +149,7 @@ fn main() {
             show_size.to_owned(),
             branch_style,
             preview_lines,
+            date_filter,
         );
     }
 }
