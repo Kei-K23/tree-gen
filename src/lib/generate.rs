@@ -1,6 +1,6 @@
 use std::{
     fs::{self, metadata, File},
-    io::{self, BufRead, Read},
+    io::{self, BufRead},
     os::unix::fs::PermissionsExt,
     path::Path,
 };
@@ -84,10 +84,14 @@ pub fn generate_tree(
 
             // If show size flags is true, then get the file size from metadata
             let size_str = if show_size {
-                match metadata(&path) {
-                    // Convert to KB by divided by 1024
-                    Ok(metadata) => format!(" ({:.2} KB)", metadata.len() as f64 / 1024.0),
-                    Err(_) => String::from(" (size unknown)"),
+                if path.is_dir() {
+                    format!(" ({:.2} KB)", get_directory_size(&path) as f64 / 1024.0)
+                } else {
+                    match metadata(&path) {
+                        // Convert to KB by divided by 1024
+                        Ok(metadata) => format!(" ({:.2} KB)", metadata.len() as f64 / 1024.0),
+                        Err(_) => String::from(" (size unknown)"),
+                    }
                 }
             } else {
                 String::new()
