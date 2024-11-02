@@ -9,7 +9,7 @@ use serde::Serialize;
 
 use crate::lib::filter::contains_matching_files_extension;
 
-use super::output_file::write_output;
+use super::{date::get_human_readable_date, output_file::write_output};
 
 #[derive(Serialize)]
 pub struct TreeNode {
@@ -141,10 +141,14 @@ pub fn generate_json_tree(
     };
 
     // If show size flags is true, then get the file size from metadata
-    let size_str = match metadata(&path) {
-        // Convert to KB by divided by 1024
-        Ok(metadata) => format!("{:.2} KB", metadata.len() as f64 / 1024.0),
-        Err(_) => String::from("size unknown"),
+    let size_str = if path.is_dir() {
+        format!("{:.2} KB", get_directory_size(path) as f64 / 1024.0)
+    } else {
+        match metadata(&path) {
+            // Convert to KB by divided by 1024
+            Ok(metadata) => format!("{:.2} KB", metadata.len() as f64 / 1024.0),
+            Err(_) => String::from("size unknown"),
+        }
     };
 
     let permission_str = match metadata(&path) {
@@ -152,13 +156,7 @@ pub fn generate_json_tree(
         Err(_) => String::from("permission unknown"),
     };
 
-    let last_modification_date_str = match metadata(&path) {
-        Ok(metadata) => match metadata.modified() {
-            Ok(time) => format!("{:?}", time),
-            Err(_) => String::from("modified date unknown"),
-        },
-        Err(_) => String::from("modified date unknown"),
-    };
+    let last_modification_date_str = get_human_readable_date(&path);
 
     let mut node = TreeNode {
         name,
@@ -210,4 +208,27 @@ pub fn generate_json_tree(
     }
 
     node
+}
+
+fn get_directory_size(path: &Path) -> u64 {
+    let mut total_size: u64 = 0;
+
+    if let Ok(entries) = fs::read_dir(path) {
+        for entry in entries {
+            if let Ok(entry) = entry {
+                let entry_path = entry.path();
+
+                if entry_path.is_dir() {
+                    total_size += get_directory_size(&entry_path);
+                } else {
+                    total_size += match fs::metadata(&entry_path) {
+                        Ok(metadata) => metadata.len(),
+                        Err(_) => 0,
+                    }
+                }
+            }
+        }
+    }
+
+    total_size
 }
