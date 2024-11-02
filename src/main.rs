@@ -50,6 +50,12 @@ fn main() {
                 .value_parser(["ascii", "unicode"]),
         )
         .arg(
+            Arg::new("preview_lines")
+                .help("Limit preview lines for files")
+                .long("preview-lines")
+                .value_name("LINES")
+        )
+        .arg(
             Arg::new("ignore_hidden")
                 .help("Ignore hidden files and folders")
                 .short('i')
@@ -82,8 +88,10 @@ fn main() {
     let file_extension = matches.get_one::<String>("file_extension");
     let output_file = matches.get_one::<String>("output_file");
     let branch_style = matches.get_one::<String>("branch_style");
+    let preview_lines = matches.get_one::<String>("preview_lines");
     let depth_str = matches.get_one::<String>("depth").unwrap();
     let depth_int = depth_str.parse::<usize>().unwrap();
+
     let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
     let show_size = matches.get_one::<bool>("show_sizes").unwrap();
     let json = matches.get_one::<bool>("json").unwrap();
@@ -131,6 +139,7 @@ fn main() {
             ignore_hidden.to_owned(),
             show_size.to_owned(),
             branch_style,
+            preview_lines,
         );
     }
 }

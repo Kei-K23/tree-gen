@@ -1,5 +1,6 @@
 use std::{
-    fs::{self, metadata},
+    fs::{self, metadata, File},
+    io::{self, BufRead, Read},
     os::unix::fs::PermissionsExt,
     path::Path,
 };
@@ -32,6 +33,7 @@ pub fn generate_tree(
     ignore_hidden: bool,
     show_size: bool,
     branch_style: Option<&String>,
+    preview_lines: Option<&String>,
 ) {
     // Determine branch style based on style
     let (branch, last_branch, continuation) = match branch_style {
@@ -110,6 +112,39 @@ pub fn generate_tree(
                 println!("{}", content);
             }
 
+            // If preview lines flag parse and current path is a file, then show preview content of file
+            if path.is_file() {
+                if let Some(num_lines_str) = preview_lines {
+                    let preview_prefix = if is_last {
+                        format!("{}     ", prefix)
+                    } else {
+                        format!("{}|    ", prefix)
+                    };
+
+                    let num_lines = num_lines_str.parse::<usize>().unwrap();
+
+                    if let Ok(file) = File::open(&path) {
+                        let reader = io::BufReader::new(file);
+                        for (line_num, line) in reader.lines().enumerate() {
+                            // When reach to preview line number, then break the loop
+                            if line_num >= num_lines {
+                                break;
+                            }
+                            match line {
+                                Ok(content) => println!("{}{}", preview_prefix, content),
+                                Err(_) => {
+                                    println!(
+                                        "{}{}",
+                                        preview_prefix, "Cannot display preview: non-UTF-8 content"
+                                    );
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
             // If path is dir, then recurse into directories
             if path.is_dir() {
                 let additional_prefix = if is_last { "    " } else { continuation };
@@ -123,6 +158,7 @@ pub fn generate_tree(
                     ignore_hidden,
                     show_size,
                     branch_style,
+                    preview_lines,
                 );
             }
         }
