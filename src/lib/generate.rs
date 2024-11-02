@@ -1,5 +1,6 @@
 use std::{
     fs::{self, metadata},
+    os::unix::fs::PermissionsExt,
     path::Path,
 };
 
@@ -15,6 +16,8 @@ pub struct TreeNode {
     name: String,
     size: String,
     node_type: String,
+    permission: String,
+    last_modification_date: String,
     children: Vec<TreeNode>,
 }
 
@@ -139,6 +142,19 @@ pub fn generate_json_tree(path: &Path, ignore_hidden: bool, root_dir_name: &str)
         Err(_) => String::from("size unknown"),
     };
 
+    let permission_str = match metadata(&path) {
+        Ok(metadata) => format!("{:o}", metadata.permissions().mode()),
+        Err(_) => String::from("permission unknown"),
+    };
+
+    let last_modification_date_str = match metadata(&path) {
+        Ok(metadata) => match metadata.modified() {
+            Ok(time) => format!("{:?}", time),
+            Err(_) => String::from("modified date unknown"),
+        },
+        Err(_) => String::from("modified date unknown"),
+    };
+
     let mut node = TreeNode {
         name,
         size: size_str,
@@ -147,6 +163,8 @@ pub fn generate_json_tree(path: &Path, ignore_hidden: bool, root_dir_name: &str)
         } else {
             "File".to_string()
         },
+        permission: permission_str,
+        last_modification_date: last_modification_date_str,
         children: vec![],
     };
 
