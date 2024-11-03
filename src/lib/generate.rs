@@ -137,7 +137,7 @@ pub fn generate_tree(
                 }
             }
 
-            // This is check directly for a file
+            // This is check for a file
             if let Some(ext) = file_extension {
                 if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext) {
                     continue;
@@ -332,11 +332,19 @@ pub fn generate_json_tree(
                 if ignore_hidden && file_name.starts_with('.') {
                     continue;
                 }
+                // Check file extension when file extension have value
+                // This is check for directory for file extension
+                if path.is_dir() && file_extension.is_some() {
+                    if !contains_matching_files_extension(&path, file_extension, ignore_hidden) {
+                        continue;
+                    }
+                }
 
-                // Apply file extension filter
+                // This is check for a file
                 if path.is_file() {
                     if let Some(ext) = file_extension {
-                        if path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                        if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext)
+                        {
                             continue;
                         }
                     }
