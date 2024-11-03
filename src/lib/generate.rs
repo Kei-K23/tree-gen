@@ -59,7 +59,66 @@ pub fn generate_tree(
 
     if let Ok(entries) = fs::read_dir(path) {
         // Check inside directory
-        let entries: Vec<_> = entries.filter_map(Result::ok).collect();
+        // Collect entries and apply filtering
+        let entries: Vec<_> = entries
+            .filter_map(Result::ok)
+            .filter(|entry| {
+                let path = entry.path();
+                let file_name = path.file_name().unwrap().to_string_lossy();
+
+                // Skip hidden files if ignore_hidden is set
+                if ignore_hidden && file_name.starts_with('.') {
+                    return false;
+                }
+
+                if path.is_file() {
+                    // Filter by file extension if provided
+                    if let Some(ext) = file_extension {
+                        if path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                            return false;
+                        }
+                    }
+
+                    // Filter by file size
+                    if let Some(size) = metadata(&path).map(|meta| meta.len()).ok() {
+                        if let Some(min) = size_min {
+                            if size < min {
+                                return false;
+                            }
+                        }
+                        if let Some(max) = size_max {
+                            if size > max {
+                                return false;
+                            }
+                        }
+                    }
+
+                    // Filter by include/exclude patterns if provided
+                    if let Some(include_pattern) = include {
+                        let re = Regex::new(include_pattern).unwrap();
+                        if !re.is_match(&file_name) {
+                            return false;
+                        }
+                    }
+                    if let Some(exclude_pattern) = exclude {
+                        let re = Regex::new(exclude_pattern).unwrap();
+                        if re.is_match(&file_name) {
+                            return false;
+                        }
+                    }
+
+                    // Filter by date if provided
+                    if let Some(date_filter) = date_filter {
+                        if !apply_date_filter(&path, date_filter) {
+                            return false;
+                        }
+                    }
+                }
+
+                // If all checks passed, include the entry
+                true
+            })
+            .collect();
 
         for (i, entry) in entries.iter().enumerate() {
             let path = entry.path();
