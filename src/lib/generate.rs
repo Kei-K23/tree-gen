@@ -284,27 +284,28 @@ pub fn generate_json_tree(
     ignore_hidden: bool,
     root_dir_name: &str,
     file_extension: Option<&String>,
+    size_min: Option<u64>,
+    size_max: Option<u64>,
+    date_filter: Option<&String>,
+    include: Option<&String>,
+    exclude: Option<&String>,
 ) -> TreeNode {
-    let name = match path.file_name() {
-        Some(path_name) => path_name.to_string_lossy().into_owned(),
-        None => root_dir_name.to_string(),
-    };
+    let name = path
+        .file_name()
+        .map(|name| name.to_string_lossy().into_owned())
+        .unwrap_or_else(|| root_dir_name.to_string());
 
-    // If show size flags is true, then get the file size from metadata
     let size_str = if path.is_dir() {
         format!("{:.2} KB", get_directory_size(path) as f64 / 1024.0)
     } else {
-        match metadata(&path) {
-            // Convert to KB by divided by 1024
-            Ok(metadata) => format!("{:.2} KB", metadata.len() as f64 / 1024.0),
-            Err(_) => String::from("size unknown"),
-        }
+        metadata(path)
+            .map(|meta| format!("{:.2} KB", meta.len() as f64 / 1024.0))
+            .unwrap_or("size unknown".to_string())
     };
 
-    let permission_str = match metadata(&path) {
-        Ok(metadata) => format!("{:o}", metadata.permissions().mode()),
-        Err(_) => String::from("permission unknown"),
-    };
+    let permission_str = metadata(path)
+        .map(|meta| format!("{:o}", meta.permissions().mode()))
+        .unwrap_or("permission unknown".to_string());
 
     let last_modification_date_str = get_human_readable_date(&path);
 
@@ -322,36 +323,71 @@ pub fn generate_json_tree(
     };
 
     if path.is_dir() {
-        if let Ok(entires) = fs::read_dir(path) {
-            for entry in entires.filter_map(Result::ok) {
+        if let Ok(entries) = fs::read_dir(path) {
+            for entry in entries.filter_map(Result::ok) {
                 let path = entry.path();
                 let file_name = path.file_name().unwrap().to_string_lossy();
 
-                // Check file for ignore hidden
-                if ignore_hidden && file_name.starts_with(".") {
+                // Apply ignore hidden filter
+                if ignore_hidden && file_name.starts_with('.') {
                     continue;
                 }
 
-                // Check file extension when file extension have value
-                // This is check for directory for file extension
-                if path.is_dir() && file_extension.is_some() {
-                    if !contains_matching_files_extension(&path, file_extension, ignore_hidden) {
+                // Apply file extension filter
+                if path.is_file() {
+                    if let Some(ext) = file_extension {
+                        if path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                            continue;
+                        }
+                    }
+                }
+
+                // Apply size filter
+                if let Some(size) = metadata(&path).map(|meta| meta.len()).ok() {
+                    if let Some(min) = size_min {
+                        if size < min {
+                            continue;
+                        }
+                    }
+                    if let Some(max) = size_max {
+                        if size > max {
+                            continue;
+                        }
+                    }
+                }
+
+                // Apply include/exclude patterns
+                if let Some(include_pattern) = include {
+                    let re = Regex::new(include_pattern).unwrap();
+                    if !re.is_match(&file_name) {
+                        continue;
+                    }
+                }
+                if let Some(exclude_pattern) = exclude {
+                    let re = Regex::new(exclude_pattern).unwrap();
+                    if re.is_match(&file_name) {
                         continue;
                     }
                 }
 
-                // This is check directly for a file
-                if let Some(ext) = file_extension {
-                    if path.is_file() && path.extension().and_then(|e| e.to_str()) != Some(ext) {
+                // Apply date filter
+                if let Some(date_filter) = date_filter {
+                    if !apply_date_filter(&path, date_filter) {
                         continue;
                     }
                 }
 
+                // Recursively build child nodes
                 node.children.push(generate_json_tree(
                     &path,
                     ignore_hidden,
                     root_dir_name,
                     file_extension,
+                    size_min,
+                    size_max,
+                    date_filter,
+                    include,
+                    exclude,
                 ));
             }
         }

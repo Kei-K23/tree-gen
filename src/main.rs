@@ -158,6 +158,11 @@ fn main() {
             ignore_hidden.to_owned(),
             &root_dir_name,
             file_extension,
+            size_min,
+            size_max,
+            date_filter,
+            include,
+            exclude,
         );
         let json_tree_output =
             serde_json::to_string_pretty(&json_tree).expect("Failed to serialize the JSON");
