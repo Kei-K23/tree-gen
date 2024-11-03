@@ -11,6 +11,9 @@ repository = "https://github.com/Kei-K23/tree-gen"
 keywords = ["file-directory", "folder-structure", "ls", "ascii", "tool", "cli"]
 categories = ["command-line-utilities"]
 
+[[bin]]
+name = "tree_gen"
+
 [dependencies]
 clap = "4.5.20"
 colored = "2.1.0"

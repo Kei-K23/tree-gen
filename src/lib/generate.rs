@@ -11,7 +11,10 @@ use serde::Serialize;
 
 use crate::lib::filter::contains_matching_files_extension;
 
-use super::{date::get_human_readable_date, filter::apply_date_filter, output_file::write_output};
+use super::{
+    date::get_human_readable_date, filter::apply_date_filter, icon::get_file_icon,
+    output_file::write_output,
+};
 
 #[derive(Serialize)]
 pub struct TreeNode {
@@ -40,6 +43,7 @@ pub fn generate_tree(
     size_max: Option<u64>,
     include: Option<&String>,
     exclude: Option<&String>,
+    icons: bool,
 ) {
     // Determine branch style based on style
     let (branch, last_branch, continuation, close_line) = match branch_style {
@@ -212,7 +216,17 @@ pub fn generate_tree(
                 file_name.normal()
             };
 
-            let content = format!("{}{}{}{}", prefix, new_prefix, file_name_colored, size_str);
+            // Combine icon and file name
+            let display_name = match icons {
+                true => {
+                    // Get the icon for file and folder
+                    let icon = get_file_icon(&path);
+                    format!("{} {}", icon, file_name_colored)
+                }
+                false => format!("{}", file_name_colored),
+            };
+
+            let content = format!("{}{}{}{}", prefix, new_prefix, display_name, size_str);
 
             // If output file exist, then write to file instead of printing out to terminal
             if let Some(output) = output_file {
@@ -273,6 +287,7 @@ pub fn generate_tree(
                     size_max,
                     include,
                     exclude,
+                    icons,
                 );
             }
         }

@@ -95,6 +95,14 @@ fn main() {
                 .action(ArgAction::SetTrue),
         )
         .arg(
+            Arg::new("icons")
+                .help("Show file icons along side with the file name")
+                .long("icons")
+                .required(false)
+                .num_args(0)
+                .action(ArgAction::SetTrue),
+        )
+        .arg(
             Arg::new("show_sizes")
                 .help("Show file size next to file name")
                 .short('s')
@@ -123,6 +131,7 @@ fn main() {
     let depth_int = depth_str.parse::<usize>().unwrap();
 
     let ignore_hidden = matches.get_one::<bool>("ignore_hidden").unwrap();
+    let icons = matches.get_one::<bool>("icons").unwrap();
     let show_size = matches.get_one::<bool>("show_sizes").unwrap();
     let json = matches.get_one::<bool>("json").unwrap();
 
@@ -191,6 +200,7 @@ fn main() {
             size_max,
             include,
             exclude,
+            icons.to_owned(),
         );
     }
 }
