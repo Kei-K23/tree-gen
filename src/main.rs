@@ -172,12 +172,6 @@ fn main() {
 
     // Tree directories compare logic
     if let Some(compare_path) = compare_path {
-        println!(
-            "Comparing directories: {} vs {}",
-            path_str.green(),
-            compare_path_str.unwrap().green()
-        );
-
         // Compare two directories
         compare_directories(&path, &compare_path);
     } else {
