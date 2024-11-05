@@ -8,7 +8,7 @@ description = "tree_gen is a CLI tool to generate folder structure in ASCII, JSO
 readme = "README.md"
 homepage = "https://github.com/Kei-K23/tree-gen"
 repository = "https://github.com/Kei-K23/tree-gen"
-keywords = ["file-directory", "folder-structure", "ls", "ascii", "tool", "cli"]
+keywords = [ "tree_gen", "generate", "ascii", "tool", "cli"]
 categories = ["command-line-utilities"]
 
 [[bin]]
