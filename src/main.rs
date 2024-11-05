@@ -4,7 +4,10 @@ use std::{env, fs, path::Path};
 
 // My Library modules
 mod lib;
-use lib::generate::{generate_json_tree, generate_tree};
+use lib::{
+    compare::compare_directories,
+    generate::{generate_json_tree, generate_tree},
+};
 
 /// Simple CLI tool to generate folder structure in ASCII for markdown files.
 fn main() {
@@ -15,9 +18,15 @@ fn main() {
         .author("Kei-K23")
         .arg(
             Arg::new("path")
-                .help("Path of the directory to display")
+                .help("Path of the directory to display or compare")
                 .value_name("PATH")
                 .required(true),
+        )
+          .arg(
+            Arg::new("compare")
+                .help("Path of a second directory to compare against")
+                .long("compare")
+                .value_name("COMPARE_PATH"),
         )
         .arg(
             Arg::new("depth")
@@ -123,6 +132,7 @@ fn main() {
         .get_matches();
 
     let path_str = matches.get_one::<String>("path").unwrap();
+    let compare_path_str = matches.get_one::<String>("compare");
     let file_extension = matches.get_one::<String>("file_extension");
     let output_file = matches.get_one::<String>("output_file");
     let branch_style = matches.get_one::<String>("branch_style");
@@ -136,6 +146,7 @@ fn main() {
     let json = matches.get_one::<bool>("json").unwrap();
 
     let path = Path::new(path_str);
+    let compare_path = compare_path_str.map(Path::new);
     let current_dir_path = env::current_dir().unwrap();
     let max_depth = Some(depth_int);
 
@@ -159,48 +170,60 @@ fn main() {
         .green()
         .to_string();
 
-    println!("{}", root_dir_name);
-
-    if *json {
-        let json_tree = generate_json_tree(
-            path,
-            ignore_hidden.to_owned(),
-            &root_dir_name,
-            file_extension,
-            size_min,
-            size_max,
-            date_filter,
-            include,
-            exclude,
+    // Tree directories compare logic
+    if let Some(compare_path) = compare_path {
+        println!(
+            "Comparing directories: {} vs {}",
+            path_str.green(),
+            compare_path_str.unwrap().green()
         );
-        let json_tree_output =
-            serde_json::to_string_pretty(&json_tree).expect("Failed to serialize the JSON");
 
-        if let Some(output_file) = output_file {
-            fs::write(output_file, json_tree_output).expect("Failed to write to file");
-            println!("JSON output has been written to {}", output_file);
-        } else {
-            println!("{}", json_tree_output)
-        }
+        // Compare two directories
+        compare_directories(&path, &compare_path);
     } else {
-        // Start the recursive tree generation for subdirectories
-        generate_tree(
-            path,
-            "",
-            file_extension,
-            output_file,
-            1,
-            max_depth,
-            ignore_hidden.to_owned(),
-            show_size.to_owned(),
-            branch_style,
-            preview_lines,
-            date_filter,
-            size_min,
-            size_max,
-            include,
-            exclude,
-            icons.to_owned(),
-        );
+        // Below is the tree generations functions
+        println!("{}", root_dir_name);
+        if *json {
+            let json_tree = generate_json_tree(
+                path,
+                ignore_hidden.to_owned(),
+                &root_dir_name,
+                file_extension,
+                size_min,
+                size_max,
+                date_filter,
+                include,
+                exclude,
+            );
+            let json_tree_output =
+                serde_json::to_string_pretty(&json_tree).expect("Failed to serialize the JSON");
+
+            if let Some(output_file) = output_file {
+                fs::write(output_file, json_tree_output).expect("Failed to write to file");
+                println!("JSON output has been written to {}", output_file);
+            } else {
+                println!("{}", json_tree_output)
+            }
+        } else {
+            // Start the recursive tree generation for subdirectories
+            generate_tree(
+                path,
+                "",
+                file_extension,
+                output_file,
+                1,
+                max_depth,
+                ignore_hidden.to_owned(),
+                show_size.to_owned(),
+                branch_style,
+                preview_lines,
+                date_filter,
+                size_min,
+                size_max,
+                include,
+                exclude,
+                icons.to_owned(),
+            );
+        }
     }
 }
