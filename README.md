@@ -12,6 +12,16 @@
 
 ## Installation
 
+### Install Globally
+
+To install `tree_gen` globally, you can use `cargo`. Just run `cargo install tree_gen` in your favorite terminal.
+
+```bash
+cargo install tree_gen
+```
+
+### Install local
+
 To use `tree_gen`, clone the repository and build the binary using Rust's package manager, Cargo:
 
 ```bash
