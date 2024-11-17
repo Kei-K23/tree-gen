@@ -145,55 +145,11 @@ tree_gen . --include "*.rs"
 
 ## TODO List for `tree_gen` for futures improvements
 
-### Core Functionality Enhancements
-
-- [ ] Add directory and file sorting options (e.g., `--sort name`, `--sort size`, `--sort date`, `--sort type`).
-- [ ] Enable depth-based filtering for file extensions and size.
-- [ ] Improve `--compare` functionality to compare file contents.
-- [ ] Enhance date filtering to support relative dates (e.g., `last week`, `30 days ago`).
-- [ ] Implement permission handling for restricted files/directories with warnings instead of crashes.
-- [ ] Add error logging option (`--log`) for easier debugging.
-
-### Output and Display Improvements
-
-- [ ] Add color customization options for different output elements.
-- [ ] Provide additional icon themes for various file types.
-- [ ] Display modification times alongside each file with an optional flag.
-- [ ] Show breadcrumb paths for deep directory structures.
-
-### Configuration and Customization
-
 - [ ] Support a configuration file (e.g., `.treegenrc`) for default values for flags like `depth`, `ignore_hidden`, `branch_style`, etc.
-- [ ] Add customizable templates for JSON output.
-- [ ] Support export to XML and HTML formats.
-- [ ] Enable fully customizable branch styles beyond `ascii` and `unicode`.
-
-### Usability and UX Improvements
-
-- [ ] Add `--verbose` flag to show detailed processing information.
 - [ ] Provide an interactive mode (`--interactive`) to allow directory expansion and collapse in the terminal.
 - [ ] Optimize performance for large directories, possibly with multi-threading.
-
-### Testing and Edge Case Handling
-
-- [ ] Add extensive unit and integration tests for all CLI options, including edge cases like empty directories and symbolic links.
-- [ ] Implement symbolic link handling, with a `--follow-symlinks` option to control behavior.
-- [ ] Detect and handle circular directory references to prevent infinite recursion.
-- [ ] Ensure compatibility with case-insensitive file systems (e.g., macOS).
-
-### Advanced Functionalities
-
-- [ ] Integrate optional support for cloud storage APIs (Google Drive, Dropbox) for directory structure and file comparison.
-- [ ] Speed up directory comparison with parallel processing for large directories.
-
-### Code Quality and Maintenance
-
 - [ ] Refactor output formats (ASCII, JSON, XML) to use traits, simplifying future additions.
-
-### Packaging and Distribution
-
-- [ ] Create release binaries for multiple platforms (Windows, macOS, Linux) and automate with GitHub Actions.
-- [ ] Set up Cargo documentation (`cargo doc`) for all public items for easy reference.
+- [ ] Create release binaries for multiple platforms (Windows, macOS, Linux)
 
 ## Contributing
 
