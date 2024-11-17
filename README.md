@@ -58,10 +58,6 @@ tree_gen <PATH> [OPTIONS]
 - `-s, --show-sizes`: Show file sizes next to file names.
 - `-j, --json`: Output the directory structure in JSON format.
 
-## Demo
-
-![tree_gen](/images/tree_gen.gif)
-
 ### Examples
 
 #### Basic Usage

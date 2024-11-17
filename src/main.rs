@@ -13,7 +13,7 @@ use lib::{
 fn main() {
     // CLI interface
     let matches = Command::new("tree_gen")
-        .version("0.1.2")
+        .version("0.1.3")
         .about("tree_gen is a CLI tool to generate folder structure in ASCII, JSON and visualize folder structure with nice and easy way without leaving your terminal")
         .author("Kei-K23")
         .arg(
